@@ -11,9 +11,6 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.glfw.GLFWGamepadState;
-import org.lwjgl.system.MemoryStack;
 
 /**
  * Client-side platforming moves:
@@ -37,11 +34,7 @@ public class StarhopClient implements ClientModInitializer {
 	private static final KeyMapping.Category CATEGORY =
 		KeyMapping.Category.register(Identifier.fromNamespaceAndPath(Starhop.MOD_ID, "starhop"));
 
-	// Gamepad button that triggers Spin: X on Xbox pads, Square on PlayStation pads.
-	private static final int SPIN_GAMEPAD_BUTTON = GLFW.GLFW_GAMEPAD_BUTTON_X;
-
 	private static KeyMapping spinKey;
-	private boolean gamepadSpinWasDown = false;
 
 	private boolean wasOnGround = true;
 	private int ticksSinceLanding = 100;
@@ -52,7 +45,7 @@ public class StarhopClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		spinKey = KeyMappingHelper.registerKeyMapping(
-			new KeyMapping("key.starhop.spin", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, CATEGORY)
+			new KeyMapping("key.starhop.spin", InputConstants.KEY_R, CATEGORY)
 		);
 		ClientTickEvents.END_CLIENT_TICK.register(this::tick);
 	}
@@ -69,7 +62,6 @@ public class StarhopClient implements ClientModInitializer {
 			resetState(player.onGround());
 			// Drain any queued spin presses so they don't fire later.
 			while (spinKey.consumeClick()) { /* discard */ }
-			gamepadSpinPressed(mc);
 			return;
 		}
 
@@ -103,7 +95,7 @@ public class StarhopClient implements ClientModInitializer {
 		}
 
 		// --- Spin ---
-		boolean spinRequested = gamepadSpinPressed(mc);
+		boolean spinRequested = false;
 		while (spinKey.consumeClick()) {
 			spinRequested = true;
 		}
@@ -124,35 +116,6 @@ public class StarhopClient implements ClientModInitializer {
 		}
 
 		wasOnGround = onGround;
-	}
-
-	/**
-	 * Returns true on the tick a connected gamepad's Spin button goes from released to pressed.
-	 * Works with any controller GLFW recognises as a gamepad. Ignored while a menu is open.
-	 */
-	private boolean gamepadSpinPressed(Minecraft mc) {
-		if (mc.screen != null) {
-			gamepadSpinWasDown = false;
-			return false;
-		}
-
-		boolean down = false;
-		for (int jid = GLFW.GLFW_JOYSTICK_1; jid <= GLFW.GLFW_JOYSTICK_LAST && !down; jid++) {
-			if (!GLFW.glfwJoystickIsGamepad(jid)) {
-				continue;
-			}
-			try (MemoryStack stack = MemoryStack.stackPush()) {
-				GLFWGamepadState state = GLFWGamepadState.malloc(stack);
-				if (GLFW.glfwGetGamepadState(jid, state)
-					&& state.buttons(SPIN_GAMEPAD_BUTTON) == GLFW.GLFW_PRESS) {
-					down = true;
-				}
-			}
-		}
-
-		boolean pressed = down && !gamepadSpinWasDown;
-		gamepadSpinWasDown = down;
-		return pressed;
 	}
 
 	private void resetState(boolean onGround) {

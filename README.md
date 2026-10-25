@@ -10,10 +10,10 @@ Galaxy-style platforming for Minecraft, built around an original theme.
 
 ## Controller support
 
-- **Spin** also fires from a connected gamepad's X button (Square on PlayStation pads). It's ignored while a menu is open.
-- Jumping and moving are vanilla actions, so the triple jump works with whatever input method moves your character.
-- To use a controller for the rest of the game, a controller mod such as Controlify is the usual route. Spin is also a normal rebindable key, so it should appear in that mod's bindings (not tested).
-- To change the gamepad button, edit `SPIN_GAMEPAD_BUTTON` in `StarhopClient.java`.
+Minecraft 26.3 replaced GLFW with SDL, so the direct gamepad code from earlier was removed.
+Spin is a normal rebindable key (default `R`, under "Starhop" in Controls), so a controller mod such as
+Controlify can map it to a button (not tested). Jumping and moving are vanilla actions, so the triple jump
+works with any input method.
 
 ## Build without installing anything (GitHub Actions)
 
